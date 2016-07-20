@@ -1,0 +1,88 @@
+public with sharing class APILab 
+{
+	public static void CreateJournals()
+    {
+        s2cor.Sage_API_Journal_Request_1_0 request = new s2cor.Sage_API_Journal_Request_1_0();
+        request.Config.CreateTags = true;
+        
+        // This will retrieve the user set company
+        s2cor__Sage_COR_User_Company__c settings = s2cor__Sage_COR_User_Company__c.getInstance();
+        
+        s2cor.Sage_API_Journal_1_0 webOrder1 = new s2cor.Sage_API_Journal_1_0();
+        webOrder1.Reference = new s2cor.Sage_API_Reference_1_0(null, 'Amazon #000023', 'Amazon#000023');
+        webOrder1.JournalCurrency = new s2cor.Sage_API_Reference_1_0(settings.s2cor__BaseCurrencyID__c, null, null);
+        webOrder1.JournalType = new s2cor.Sage_API_Reference_1_0(null, 'eCommerce Invoices', null); 
+        webOrder1.JournalDate = System.Today();
+        webOrder1.JournalCompany = new s2cor.Sage_API_Reference_1_0(settings.s2cor__CompanyID__c, null, null);  
+        
+        s2cor.Sage_API_Tag_1_0 customer = new s2cor.Sage_API_Tag_1_0();
+        customer.Dimension = new s2cor.Sage_API_Reference_1_0(null, 'Customer', null);
+        customer.Reference = new s2cor.Sage_API_Reference_1_0(null, 'Ann Seeley', null);
+        webOrder1.Tags.add(customer);
+        
+        s2cor.Sage_API_Tag_1_0 ecommerce = new s2cor.Sage_API_Tag_1_0();
+        ecommerce.Dimension = new s2cor.Sage_API_Reference_1_0(null, 'eCommerce', null);
+        ecommerce.Reference = new s2cor.Sage_API_Reference_1_0(null, 'Amazon', null);
+        webOrder1.Tags.add(ecommerce);
+        
+        s2cor.Sage_API_Journal_Item_1_0 journalItem = new s2cor.Sage_API_Journal_Item_1_0();
+        journalItem.Reference = new s2cor.Sage_API_Reference_1_0(null, 'Widget ABC 123', 'WidgetABC123');
+        journalItem.Amount = 123;
+        
+        s2cor.Sage_API_Tag_1_0 itemtag = new s2cor.Sage_API_Tag_1_0();
+        itemtag.Dimension = new s2cor.Sage_API_Reference_1_0(null, 'Product', null);
+        itemtag.Reference = new s2cor.Sage_API_Reference_1_0(null, null, 'WidgetABC123');
+        journalItem.Tags.add(itemtag);
+        
+        webOrder1.Items.add(journalItem);
+        
+        request.items.Add(webOrder1);
+        
+        List<s2cor.Sage_API_Journal_Response_1_0> responses = s2cor.Sage_API_Journal_Helper_1_0.ProcessJournals(new List<s2cor.Sage_API_Journal_Request_1_0> { request });
+        
+    }
+    
+    public static void CreateProduct()
+    {
+        s2cor.Sage_API_CRM_Request_1_0 request = new s2cor.Sage_API_CRM_Request_1_0();
+        request.Config.ErrorHandling = s2cor.Sage_API_Enums_ErrorHandling_1_0.FailOnFirstError;
+                
+        s2cor.Sage_API_Product_1_0 product = new s2cor.Sage_API_Product_1_0();
+        product.Reference = new s2cor.Sage_API_Reference_1_0(null, 'Widget', 'Widget');
+        
+        s2cor.Sage_API_Tag_1_0 tag = new s2cor.Sage_API_Tag_1_0();
+        tag.Reference = new s2cor.Sage_API_Reference_1_0(null, 'Widget', null);
+        tag.Dimension = new s2cor.Sage_API_Reference_1_0(null, 'Product', null);
+        tag.LedgerAccount = new s2cor.Sage_API_Reference_1_0(null, 'Sales of Services', 'SalesOfServices');
+        tag.Active = true;
+        
+        product.Tags.add(tag);
+        
+        request.Products.add(product);
+        
+		s2cor.Sage_API_CRM_Response_1_0 response = s2cor.Sage_API_Dimension_Helper_1_0.ProcessProducts(request);
+   
+    }
+    
+    public static void CreateeCommerce()
+    {
+        s2cor.Sage_API_Dimension_Request_1_0 request = new s2cor.Sage_API_Dimension_Request_1_0();
+        request.Config.ErrorHandling = s2cor.Sage_API_Enums_ErrorHandling_1_0.FailOnFirstError;
+        
+        s2cor.Sage_API_Dimension_1_0 dimension = new s2cor.Sage_API_Dimension_1_0();
+        dimension.Reference = new s2cor.Sage_API_Reference_1_0(null, 'eCommerce', 'eCommerce');
+        dimension.IsUniversal = true;
+        dimension.IsPublic = true;
+        
+        request.Items.add(dimension);
+        
+		s2cor.Sage_API_Dimension_Response_1_0 response = s2cor.Sage_API_Dimension_Helper_1_0.ProcessDimensions(request);
+   		
+        for(s2cor.Sage_API_Dimension_1_0 item : response.Items)
+        {
+            system.debug(item.Reference.Id);
+            system.debug(item.Reference.Name);
+            system.debug(item.Reference.UID);
+        }
+    }
+}
